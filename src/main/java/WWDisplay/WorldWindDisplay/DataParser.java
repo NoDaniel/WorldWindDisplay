@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.StringTokenizer;
 
 import org.orekit.time.AbsoluteDate;
@@ -20,7 +21,8 @@ import org.orekit.utils.IERSConventions;
 
 public class DataParser {
 		
-	GeodeticPoint positions[];
+	//GeodeticPoint positions[];
+	public ArrayList<GeodeticPoint> positions;
 	double posX;
 	double posY;
 	double posZ;
@@ -29,11 +31,12 @@ public class DataParser {
 	
 	public DataParser()
 	{
-		positions = new GeodeticPoint[4500];
+		positions = new ArrayList<GeodeticPoint>();
+		//positions = new GeodeticPoint[14000];
 		date = new AbsoluteDate("2013-07-23T03:03:05.970", TimeScalesFactory.getUTC());
 	}
 
-	public GeodeticPoint[] ParseFile(final File dataFile) {
+	public ArrayList<GeodeticPoint> ParseFile(final File dataFile) {
 		
 		try (final BufferedReader br = new BufferedReader(new FileReader(dataFile))) {
 			
@@ -42,8 +45,9 @@ public class DataParser {
 
 			// Read the entire file
 			while ((line = br.readLine()) != null) {
-				line = br.readLine();
-
+				
+				//line = br.readLine();
+				
 				line = line.trim();
 				if (line.startsWith("#")) {
 					// skip comments
@@ -57,9 +61,15 @@ public class DataParser {
 					 String garbageToken = st.nextToken();
 				 }
 				 
+
 				 posX = Double.parseDouble(st.nextToken()) * 1000;
 				 posY = Double.parseDouble(st.nextToken()) * 1000;
 				 posZ = Double.parseDouble(st.nextToken()) * 1000;
+				 
+		        if(positionInVector < 10)
+		        {
+		        	System.out.println(line);		        
+		        }
 				 
 			    // get the ITRF frame
 			    itrf = FramesFactory.getITRF(IERSConventions.IERS_2010, false);
@@ -69,19 +79,25 @@ public class DataParser {
 		        
 		        Frame frame = FramesFactory.getEME2000();
 		        Vector3D position = new Vector3D(posX, posY, posZ);
-		        date = date.shiftedBy(6.0000000000000000e+02);
+		        date = date.shiftedBy(6.0000000000000000e+01);
 		        GeodeticPoint geoPoint = earth.transform(position, frame, date);
-		        
-		        positions[positionInVector] = geoPoint;
+		        if(positionInVector == 0)
+		        {
+			        System.out.println(geoPoint);			        
+		        }
+
+		        positions.add(geoPoint);
+		        //positions[positionInVector] = geoPoint;
 		        positionInVector++;
 				 
-				 
+				
 			}
 
 		} catch (Exception ex) {
 			System.out.println(ex.getMessage());
 		}
 		
+		System.out.println(positions.size()); 
 		return positions;
 	}
 
